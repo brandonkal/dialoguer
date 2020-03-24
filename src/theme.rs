@@ -67,7 +67,7 @@ pub trait Theme {
         &self,
         f: &mut dyn fmt::Write,
         prompt: &str,
-        default: Option<u8>,
+        default: Option<usize>,
         choices: &Vec<char>,
     ) -> fmt::Result {
         write!(f, "{}", &prompt)?;
@@ -76,8 +76,8 @@ pub trait Theme {
         Ok(())
     }
 
-    fn _format_key_prompt(&self, default: Option<u8>, choices: &Vec<char>) -> String {
-        let num = default.unwrap_or(100) as usize;
+    fn _format_key_prompt(&self, default: Option<usize>, choices: &Vec<char>) -> String {
+        let num = default.unwrap_or(100);
         let choices = choices.clone();
         let mut strs = "".to_string();
         for (pos, choice) in choices.iter().enumerate() {
@@ -485,7 +485,7 @@ impl<'a> TermThemeRenderer<'a> {
     pub fn key_prompt(
         &mut self,
         prompt: &str,
-        default: Option<u8>,
+        default: Option<usize>,
         choices: &Vec<char>,
     ) -> io::Result<()> {
         self.write_formatted_str(|this, buf| {
@@ -750,7 +750,7 @@ impl Theme for ColoredTheme {
         &self,
         f: &mut dyn fmt::Write,
         prompt: &str,
-        default: Option<u8>,
+        default: Option<usize>,
         choices: &Vec<char>,
     ) -> fmt::Result {
         let mut strs = self._format_key_prompt(default, &choices);

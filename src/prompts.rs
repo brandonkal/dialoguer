@@ -50,7 +50,7 @@ pub struct Confirmation<'a> {
 /// ```
 pub struct KeyPrompt<'a> {
     text: String,
-    default: u8,
+    default: usize,
     items: Vec<char>,
     show_default: bool,
     theme: &'a dyn Theme,
@@ -195,7 +195,7 @@ impl<'a> KeyPrompt<'a> {
     pub fn with_theme(theme: &'a dyn Theme) -> KeyPrompt<'a> {
         KeyPrompt {
             text: "".into(),
-            default: 0,
+            default: 100,
             items: vec![],
             show_default: true,
             theme,
@@ -217,7 +217,7 @@ impl<'a> KeyPrompt<'a> {
     }
 
     /// Overrides the default.
-    pub fn default(&mut self, val: u8) -> &mut KeyPrompt<'a> {
+    pub fn default(&mut self, val: usize) -> &mut KeyPrompt<'a> {
         self.default = val;
         self
     }
@@ -258,14 +258,22 @@ impl<'a> KeyPrompt<'a> {
         )?;
         loop {
             let input = term.read_char()?.to_ascii_lowercase();
-            let rv = if self.items.contains(&input) {
-                input
+            let rv = if input == '\n' || input == '\r' {
+                let c = self.items.get(self.default);
+                match c {
+                    Some(c) => c,
+                    _ => {
+                        continue;
+                    }
+                }
+            } else if self.items.contains(&input) {
+                &input
             } else {
                 continue;
             };
             term.clear_line()?;
-            render.key_prompt_selection(&self.text, rv)?;
-            return Ok(rv);
+            render.key_prompt_selection(&self.text, *rv)?;
+            return Ok(*rv);
         }
     }
 }
