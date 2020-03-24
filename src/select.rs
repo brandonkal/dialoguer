@@ -271,7 +271,8 @@ impl<'a> Checkboxes<'a> {
 
     /// Sets a defaults for the menu
     pub fn defaults(&mut self, val: &[bool]) -> &mut Checkboxes<'a> {
-        self.defaults = val.to_vec()
+        self.defaults = val
+            .to_vec()
             .iter()
             .cloned()
             .chain(repeat(false))
@@ -416,13 +417,13 @@ impl<'a> Checkboxes<'a> {
                     if let Some(ref prompt) = self.prompt {
                         render.multi_prompt_selection(prompt, &[][..])?;
                     }
-                    return Ok(
-                        self.defaults.clone()
-                            .into_iter()
-                            .enumerate()
-                            .filter_map(|(idx, checked)| if checked { Some(idx) } else { None })
-                            .collect()
-                    );
+                    return Ok(self
+                        .defaults
+                        .clone()
+                        .into_iter()
+                        .enumerate()
+                        .filter_map(|(idx, checked)| if checked { Some(idx) } else { None })
+                        .collect());
                 }
                 Key::Enter => {
                     if self.clear {
