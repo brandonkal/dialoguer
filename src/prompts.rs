@@ -242,7 +242,7 @@ impl<'a> KeyPrompt<'a> {
 
     /// Like `interact` but allows a specific terminal to be set.
     pub fn interact_on(&self, term: &Term) -> io::Result<char> {
-        if self.items.len() == 0 {
+        if self.items.is_empty() {
             panic!("Expected items to be specified")
         }
         let mut render = TermThemeRenderer::new(term, self.theme);
@@ -381,7 +381,7 @@ where
             render.input_prompt(
                 &self.prompt,
                 if self.show_default {
-                    default_string.as_ref().map(|x| x.as_str())
+                    default_string.as_deref()
                 } else {
                     None
                 },
