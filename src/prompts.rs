@@ -28,6 +28,34 @@ pub struct Confirmation<'a> {
     theme: &'a dyn Theme,
 }
 
+/// Renders a confirmation prompt with several options.
+///
+/// ## Example usage
+///
+/// ```rust,no_run
+/// # fn test() -> Result<(), Box<std::error::Error>> {
+/// use dialoguer::Confirmation;
+///
+/// let rv = KeyPrompt::with_theme(&ColoredTheme::default())
+///     .with_text("Execute or preview?")
+///     .items(&['y', 'n', 'p'])
+///     .interact()
+///     .unwrap();
+/// if rv == 'y' {
+///     println!("Looks like you want to continue");
+/// } else {
+///     println!("nevermind then :(");
+/// }
+/// # Ok(()) } fn main() { test().unwrap(); }
+/// ```
+pub struct KeyPrompt<'a> {
+    text: String,
+    default: u8,
+    items: Vec<char>,
+    show_default: bool,
+    theme: &'a dyn Theme,
+}
+
 /// Renders a simple input prompt.
 ///
 /// ## Example usage
@@ -146,6 +174,97 @@ impl<'a> Confirmation<'a> {
             };
             term.clear_line()?;
             render.confirmation_prompt_selection(&self.text, rv)?;
+            return Ok(rv);
+        }
+    }
+}
+
+impl<'a> Default for KeyPrompt<'a> {
+    fn default() -> KeyPrompt<'a> {
+        KeyPrompt::new()
+    }
+}
+
+impl<'a> KeyPrompt<'a> {
+    /// Creates the prompt with a specific text.
+    pub fn new() -> KeyPrompt<'static> {
+        KeyPrompt::with_theme(get_default_theme())
+    }
+
+    /// Sets a theme other than the default one.
+    pub fn with_theme(theme: &'a dyn Theme) -> KeyPrompt<'a> {
+        KeyPrompt {
+            text: "".into(),
+            default: 0,
+            items: vec![],
+            show_default: true,
+            theme,
+        }
+    }
+
+    /// Sets the KeyPrompt text.
+    pub fn with_text(&mut self, text: &str) -> &mut KeyPrompt<'a> {
+        self.text = text.into();
+        self
+    }
+
+    /// Adds multiple items to the selector.
+    pub fn items(&mut self, items: &[char]) -> &mut KeyPrompt<'a> {
+        for item in items {
+            self.items.push(*item);
+        }
+        self
+    }
+
+    /// Overrides the default.
+    pub fn default(&mut self, val: u8) -> &mut KeyPrompt<'a> {
+        self.default = val;
+        self
+    }
+
+    /// Disables or enables the default value display.
+    ///
+    /// The default is to append `[y/n]` to the prompt to tell the
+    /// user which keys to press.  This also renders the default choice
+    /// in uppercase.  The default is selected on enter.
+    pub fn show_default(&mut self, val: bool) -> &mut KeyPrompt<'a> {
+        self.show_default = val;
+        self
+    }
+
+    /// Enables user interaction and returns the result.
+    ///
+    /// If the user confirms the result is `true`, `false` otherwise.
+    /// The dialog is rendered on stderr.
+    pub fn interact(&self) -> io::Result<char> {
+        self.interact_on(&Term::stderr())
+    }
+
+    /// Like `interact` but allows a specific terminal to be set.
+    pub fn interact_on(&self, term: &Term) -> io::Result<char> {
+        if self.items.len() == 0 {
+            panic!("Expected items to be specified")
+        }
+        let mut render = TermThemeRenderer::new(term, self.theme);
+
+        render.key_prompt(
+            &self.text,
+            if self.show_default {
+                Some(self.default)
+            } else {
+                None
+            },
+            &self.items,
+        )?;
+        loop {
+            let input = term.read_char()?.to_ascii_lowercase();
+            let rv = if self.items.contains(&input) {
+                input
+            } else {
+                continue;
+            };
+            term.clear_line()?;
+            render.key_prompt_selection(&self.text, rv)?;
             return Ok(rv);
         }
     }
