@@ -35,7 +35,7 @@ fn init_config() -> Result<Option<Config>, Box<dyn Error>> {
 
     let interface = Input::with_theme(&theme)
         .with_prompt("Interface")
-        .default("127.0.0.1".parse().unwrap())
+        .default(Some("127.0.0.1".parse().unwrap()))
         .interact()?;
 
     let hostname = Input::with_theme(&theme)

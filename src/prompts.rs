@@ -328,8 +328,8 @@ where
     /// Out of the box the prompt does not have a default and will continue
     /// to display until the user hit enter.  If a default is set the user
     /// can instead accept the default with enter.
-    pub fn default(&mut self, value: T) -> &mut Input<'a, T> {
-        self.default = Some(value);
+    pub fn default(&mut self, value: Option<T>) -> &mut Input<'a, T> {
+        self.default = value;
         self
     }
     /// Enables or disables an empty input
